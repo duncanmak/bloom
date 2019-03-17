@@ -36,22 +36,26 @@ let num () =
 
   printfn "%A" ([0..20] |> List.map (fun v -> v, seen v bloom))
 
-let words () =
+let words (bufferSize, hashSize) =
+
   let words = File.ReadAllLines "/usr/share/dict/words"
-  let bloom = makeBloom<string> 5000000 (makeHashes 5)
+  let bloom = makeBloom bufferSize (makeHashes hashSize)
 
   for w in words do insert w bloom
 
   let mutable matches = []
   let r = Random()
-  for i = 1 to 1000 do
+  for i = 1 to 10000 do
     let v = generate r
     if seen v bloom then matches <- v :: matches
 
   printfn "%i matches: %A" matches.Length matches
-  printfn "Actual hits: %A" (matches |> List.filter (fun m -> words |> Array.contains m))
+  let hits = (matches |> List.filter (fun m -> words |> Array.contains m))
+  printfn "%i correct hits: %A" hits.Length hits
   
 let go () =
-  words ()
+  let bufferSize = 5000000
+  let hashSize   = 5
+  words (bufferSize, hashSize)
 
 go()
